@@ -14,10 +14,10 @@ export function App() {
   const { data: transactionsByEmployee, ...transactionsByEmployeeUtils } = useTransactionsByEmployee()
   const [isLoading, setIsLoading] = useState(false)
 
-  const transactions = useMemo(
-    () => paginatedTransactions?.data ?? transactionsByEmployee ?? null,
-    [paginatedTransactions, transactionsByEmployee]
-  )
+  const transactions = useMemo(() => {
+    if (employees === null) return null
+    return paginatedTransactions?.data ?? transactionsByEmployee ?? null
+  }, [paginatedTransactions, transactionsByEmployee, employees])
 
   const loadAllTransactions = useCallback(async () => {
     setIsLoading(true)
@@ -61,11 +61,14 @@ export function App() {
             label: `${item.firstName} ${item.lastName}`,
           })}
           onChange={async (newValue) => {
-            if (newValue === null) {
-              return
+            if (!newValue) return
+            // If "All Employees" is selected, load all transactions
+            if (newValue.id === "") {
+              await loadAllTransactions()
+            } else {
+              // Otherwise, load transactions for the specific employee
+              await loadTransactionsByEmployee(newValue.id)
             }
-
-            await loadTransactionsByEmployee(newValue.id)
           }}
         />
 
