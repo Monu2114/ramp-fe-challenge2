@@ -13,6 +13,11 @@ export function App() {
   const { data: paginatedTransactions, ...paginatedTransactionsUtils } = usePaginatedTransactions()
   const { data: transactionsByEmployee, ...transactionsByEmployeeUtils } = useTransactionsByEmployee()
   const [isLoading, setIsLoading] = useState(false)
+  const [selectedEmployee, setSelectedEmployee] = useState({
+    id: "",
+    firstName: "All",
+    lastName: "Employees",
+  })
 
   const transactions = useMemo(() => {
     if (employees === null) return null
@@ -61,7 +66,10 @@ export function App() {
             label: `${item.firstName} ${item.lastName}`,
           })}
           onChange={async (newValue) => {
+            console.log(newValue)
             if (!newValue) return
+            setSelectedEmployee(newValue)
+
             // If "All Employees" is selected, load all transactions
             if (newValue.id === "") {
               await loadAllTransactions()
@@ -82,7 +90,12 @@ export function App() {
               className="RampButton"
               disabled={paginatedTransactionsUtils.loading}
               onClick={async () => {
-                await loadAllTransactions()
+                if (selectedEmployee.id === "") {
+                  await loadAllTransactions() // Fetch more for all employees
+                } else {
+                  console.log(selectedEmployee)
+                  await loadTransactionsByEmployee(selectedEmployee.id) // Fetch more for specific employee
+                }
               }}
             >
               View More
